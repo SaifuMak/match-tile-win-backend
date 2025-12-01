@@ -3,6 +3,7 @@ from rest_framework.response import Response
 from .models import Participant
 from rest_framework import status
 from rest_framework.decorators import api_view
+from .utils import draw_prize
 # Create your views here.
 
 
@@ -23,6 +24,42 @@ def register_user(request):
             status=status.HTTP_201_CREATED
         )
 
+    except Exception as e:
+        return Response(
+            {"error": str(e)},
+            status=status.HTTP_400_BAD_REQUEST
+        )
+    
+
+@api_view(['POST'])
+def get_my_rewards(request):
+    id = request.data.get("id")
+    has_won = request.data.get("has_won")
+
+    try:
+        participant = Participant.objects.get(id=id)
+       
+        if has_won:
+                 participant.has_won = True
+                 participant.save()
+                 return Response(
+                        {"reward": None},
+                        status=status.HTTP_200_OK
+                    )
+        
+        prize = draw_prize()
+        participant.reward = prize.amount if prize else 0
+        participant.save()  
+        return Response(
+            {"reward": participant.reward},
+            status=status.HTTP_200_OK
+        )
+
+    except Participant.DoesNotExist:
+        return Response(
+            {"error": "Participant not found"},
+            status=status.HTTP_404_NOT_FOUND
+        )
     except Exception as e:
         return Response(
             {"error": str(e)},
