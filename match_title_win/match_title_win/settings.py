@@ -25,6 +25,12 @@ SECRET_KEY = 'django-insecure-njn*@jm4oxwd0-irmd_0^0qz+j&j*y_p4p_qok0#cs@%a+0yen
 AUTH_USER_MODEL = 'authentication.User'
 
 
+import os
+from dotenv import load_dotenv
+
+load_dotenv()
+
+
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
@@ -35,6 +41,7 @@ CSRF_TRUSTED_ORIGINS = [
     "https://localhost",
     "https://127.0.0.1",
     "http://localhost:3000",
+      "https://*.railway.app",
 ]
 
 CORS_ALLOW_ALL_ORIGINS = True
@@ -61,6 +68,7 @@ MIDDLEWARE = [
      "corsheaders.middleware.CorsMiddleware",
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
@@ -110,15 +118,34 @@ SIMPLE_JWT = {
 
 
 
+RAILWAY_DATABASE_URL = os.getenv("DATABASE_URL")
+
+if RAILWAY_DATABASE_URL:
+
+    import dj_database_url
+
+    DATABASES = {
+        "default": dj_database_url.config(
+            default=os.getenv("DATABASE_URL"),
+            conn_max_age=600,
+            ssl_require=True
+        )
+    }
+else:
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': BASE_DIR / 'db.sqlite3',
+        }
+    }
+
+
+
+
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
-    }
-}
+
 
 
 # Password validation
@@ -154,8 +181,12 @@ USE_TZ = True
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.2/howto/static-files/
+import os
 
 STATIC_URL = 'static/'
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles_build', 'static')
+STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
+DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field

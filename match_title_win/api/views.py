@@ -4,6 +4,8 @@ from .models import Participant
 from rest_framework import status
 from rest_framework.decorators import api_view
 from .utils import draw_prize
+from django.db import transaction
+
 # Create your views here.
 
 
@@ -32,26 +34,29 @@ def register_user(request):
     
 
 @api_view(['POST'])
+@transaction.atomic
 def get_my_rewards(request):
     id = request.data.get("id")
     has_won = request.data.get("has_won")
+    time = request.data.get("time")
 
     try:
         participant = Participant.objects.get(id=id)
+        participant.time_taken = time
        
         if has_won:
                  participant.has_won = True
                  participant.save()
                  return Response(
-                        {"reward": None},
+                        { "win_status": True, "reward": None},
                         status=status.HTTP_200_OK
                     )
-        
         prize = draw_prize()
+        
         participant.reward = prize.amount if prize else 0
         participant.save()  
         return Response(
-            {"reward": participant.reward},
+            { "win_status": False,"reward": participant.reward},
             status=status.HTTP_200_OK
         )
 
