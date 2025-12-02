@@ -1,1 +1,1 @@
-web: gunicorn match_title_win.wsgi
+web: gunicorn --chdir match_title_win match_title_win.wsgi
