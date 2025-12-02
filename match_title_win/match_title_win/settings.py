@@ -38,7 +38,7 @@ ALLOWED_HOSTS = [ '127.0.0.1',
     'localhost',
     'localhost:5173/',
     'match-tile-win-game.vercel.app',
-    'web-production-34e07.up.railway.app/'
+    'web-production-34e07.up.railway.app'
 ]
 
 
