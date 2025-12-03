@@ -5,7 +5,11 @@ from rest_framework import status
 from rest_framework.decorators import api_view
 from .utils import draw_prize
 from django.db import transaction
-
+from .serializers import ParticipantSerializer
+from .pagination import GeneralListPagination
+from rest_framework.permissions import IsAuthenticated, IsAdminUser
+from authentication.views import JWTAuthentication
+from rest_framework.decorators import api_view, authentication_classes, permission_classes
 # Create your views here.
 
 
@@ -70,3 +74,16 @@ def get_my_rewards(request):
             {"error": str(e)},
             status=status.HTTP_400_BAD_REQUEST
         )
+    
+
+
+@api_view(["GET"])
+@authentication_classes([JWTAuthentication])
+@permission_classes([IsAdminUser])
+def list_participants(request):
+    print("Listing participants")
+    participants = Participant.objects.all().order_by("-created_at")
+    paginator = GeneralListPagination()
+    paginated_participants = paginator.paginate_queryset(participants, request)
+    serializer = ParticipantSerializer(paginated_participants, many=True)
+    return paginator.get_paginated_response(serializer.data)
