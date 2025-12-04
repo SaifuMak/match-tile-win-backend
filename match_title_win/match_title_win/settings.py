@@ -66,9 +66,27 @@ INSTALLED_APPS = [
      "rest_framework",
     "rest_framework_simplejwt",
     "corsheaders",
+     'storages',
     "authentication",
     "api",
     'rest_framework_simplejwt.token_blacklist',
+]
+
+
+CORS_ALLOW_METHODS = [
+    'GET',
+    'POST',
+    'PUT',
+    'DELETE',
+    'OPTIONS',
+    'PATCH',
+   
+]
+
+CORS_ALLOW_HEADERS = [
+    'content-type',
+    'authorization',
+    'Access-Control-Allow-Credentials',  
 ]
 
 MIDDLEWARE = [
@@ -102,6 +120,18 @@ TEMPLATES = [
 
 
 WSGI_APPLICATION = 'match_title_win.wsgi.application'
+
+
+AWS_ACCESS_KEY_ID =  os.getenv('AWS_ACCESS_KEY_ID')
+AWS_SECRET_ACCESS_KEY = os.getenv('AWS_SECRET_ACCESS_KEY')
+AWS_STORAGE_BUCKET_NAME = os.getenv('AWS_STORAGE_BUCKET_NAME')
+AWS_S3_FILE_OVERWRITE = False
+# AWS_DEFAULT_ACL = None
+
+AWS_DEFAULT_ACL = "public-read"
+AWS_QUERYSTRING_AUTH = False
+AWS_S3_FILE_OVERWRITE = False
+
 
 REST_FRAMEWORK = {
    

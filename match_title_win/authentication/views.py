@@ -28,6 +28,8 @@ class JWTAuthentication(authentication.BaseAuthentication):
         # access_token = request.COOKIES.get('access_token')
         refresh_token = request.COOKIES.get('session_persist')
         access_token = request.COOKIES.get('session_id')
+        print(access_token,'access_token from cookie')
+        print(refresh_token,'refresh_token from cookie')
         
         if not access_token:
             if not refresh_token:

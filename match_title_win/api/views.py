@@ -23,6 +23,9 @@ def register_user(request):
             email=data.get("email"),
             phone=data.get("phone"),
             city=data.get("city"),
+            retailer=data.get("retailer"),
+            amount_spent=data.get("amount_spent"),
+            invoice=data.get("invoice")
         )
 
         return Response(
@@ -86,4 +89,16 @@ def list_participants(request):
     paginator = GeneralListPagination()
     paginated_participants = paginator.paginate_queryset(participants, request)
     serializer = ParticipantSerializer(paginated_participants, many=True)
+    return paginator.get_paginated_response(serializer.data)
+
+
+@api_view(["GET"])
+@authentication_classes([JWTAuthentication])
+@permission_classes([IsAdminUser])
+def list_winners(request):
+    print("Listing winners")
+    winners = Participant.objects.filter(has_won=True).order_by("-created_at")
+    paginator = GeneralListPagination()
+    paginated_winners = paginator.paginate_queryset(winners, request)
+    serializer = ParticipantSerializer(paginated_winners, many=True)
     return paginator.get_paginated_response(serializer.data)
