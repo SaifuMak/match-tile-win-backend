@@ -87,7 +87,12 @@ def get_my_rewards(request):
 @permission_classes([IsAdminUser])
 def list_participants(request):
     print("Listing participants")
-    participants = Participant.objects.all().order_by("-created_at")
+    participants = Participant.objects.filter(has_played=True).order_by("-created_at")
+    query = request.query_params.get("query")
+    if query:
+        participants = participants.filter(
+            name__icontains=query
+        )
     paginator = GeneralListPagination()
     paginated_participants = paginator.paginate_queryset(participants, request)
     serializer = ParticipantSerializer(paginated_participants, many=True)
@@ -100,7 +105,31 @@ def list_participants(request):
 def list_winners(request):
     print("Listing winners")
     winners = Participant.objects.filter(has_won=True).order_by("-created_at")
+    query = request.query_params.get("query")
+    if query:
+        winners = winners.filter(
+            name__icontains=query
+        )
     paginator = GeneralListPagination()
     paginated_winners = paginator.paginate_queryset(winners, request)
     serializer = ParticipantSerializer(paginated_winners, many=True)
     return paginator.get_paginated_response(serializer.data)
+
+
+
+@api_view(["GET"])
+@authentication_classes([JWTAuthentication])
+@permission_classes([IsAdminUser])
+def list_all_participants(request):
+    participants = Participant.objects.filter(has_played=True).order_by("-created_at")
+    serializer = ParticipantSerializer(participants, many=True)
+    return Response(serializer.data, status=status.HTTP_200_OK)
+
+
+@api_view(["GET"])
+@authentication_classes([JWTAuthentication])
+@permission_classes([IsAdminUser])
+def list_all_winners(request):
+    winners = Participant.objects.filter(has_won=True).order_by("-created_at")
+    serializer = ParticipantSerializer(winners, many=True)
+    return Response(serializer.data, status=status.HTTP_200_OK)
