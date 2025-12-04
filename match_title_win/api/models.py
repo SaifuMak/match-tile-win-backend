@@ -17,6 +17,7 @@ class Participant(R2PublicURLMixin,models.Model):
      played_at = models.DateTimeField(auto_now=True,null=True, blank=True)
      retailer = models.CharField(max_length=100, null=True, blank=True)
      amount_spent = models.PositiveBigIntegerField(null=True, blank=True)
+     has_played = models.BooleanField(default=False, null=True, blank=True)
      invoice = models.FileField(
         upload_to='assets/invoices/',
         storage=R2PublicStorage(),

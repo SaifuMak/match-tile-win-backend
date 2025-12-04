@@ -50,20 +50,22 @@ def get_my_rewards(request):
     try:
         participant = Participant.objects.get(id=id)
         participant.time_taken = time
+        participant.has_played = True
        
         if has_won:
-                 participant.has_won = True
-                 participant.save()
-                 return Response(
-                        { "win_status": True, "reward": None},
+                prize = draw_prize()
+                participant.has_won = True
+
+                participant.reward = prize.amount if prize else 0
+                participant.save()
+                return Response(
+                        { "win_status": True, "reward": participant.reward},
                         status=status.HTTP_200_OK
                     )
-        prize = draw_prize()
-        
-        participant.reward = prize.amount if prize else 0
+    
         participant.save()  
         return Response(
-            { "win_status": False,"reward": participant.reward},
+            { "win_status": False,"reward": None},
             status=status.HTTP_200_OK
         )
 
