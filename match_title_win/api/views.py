@@ -62,6 +62,7 @@ def get_my_rewards(request):
                 if prize:
                     participant.reward = prize.amount if prize else 0
                 else:
+                    print("No prize available, assigning consolation prize")
                     handle_consolation_prize()
 
                 participant.save()
@@ -175,5 +176,36 @@ def rewards_details(request):
         "vouchers": vouchers_serializer.data,
         "consolation": consolation_serializer.data,
     }
-
     return Response(data, status=status.HTTP_200_OK)
+
+
+@api_view(["DELETE"])
+@authentication_classes([JWTAuthentication])
+@permission_classes([IsAdminUser])
+def delete_participant(request, participant_id):
+    try:
+        participant = Participant.objects.get(id=participant_id)
+
+        # Restore prize quantity if participant had won
+        if participant.has_won and participant.reward:
+            prize = Prize.objects.get(amount=participant.reward)
+            prize.quantity = F("quantity") + 1
+            prize.save(update_fields=["quantity"])
+
+        #  restore consolation prize quantity if participant had played but didn't win also didn't get any reward due to unavailability of prizes
+        elif participant.has_played and not participant.reward:
+            consolation_prize = ConsolationPrize.objects.first()
+            if consolation_prize:
+                consolation_prize.quantity = F("quantity") + 1
+                consolation_prize.save(update_fields=["quantity"])
+        
+        participant.delete()
+        return Response(
+            {"message": "Participant deleted successfully."},
+            status=status.HTTP_200_OK
+        )
+    except Participant.DoesNotExist:
+        return Response(
+            {"error": "Participant not found."},
+            status=status.HTTP_404_NOT_FOUND
+        )
