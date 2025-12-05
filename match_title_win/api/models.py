@@ -25,6 +25,8 @@ class Participant(R2PublicURLMixin,models.Model):
     )
      invoice_public_url = models.URLField(max_length=500, blank=True, null=True)
 
+     is_prize_claimed = models.BooleanField(default=False)
+
      file_field_name = "invoice"
      url_field_name = "invoice_public_url"
      path_prefix="assets/invoices"
@@ -35,8 +37,20 @@ class Participant(R2PublicURLMixin,models.Model):
 
 class Prize(models.Model):
     name = models.CharField(max_length=100)
-    amount = models.IntegerField()  # $10 / $20 / $50 / $100 etc.
+    amount = models.IntegerField(null=True, blank=True)  # $10 / $20 / $50 / $100 etc.
     quantity = models.PositiveIntegerField(default=0)
 
     def __str__(self):
         return f"{self.amount} Gift Card ({self.quantity} left)"
+
+
+class ConsolationPrize(models.Model):
+    name = models.CharField(max_length=100)
+    quantity = models.PositiveIntegerField(default=0)
+
+    def __str__(self):
+        return f"{self.name} ({self.quantity} left)"
+
+class PrizeConfig(models.Model):
+    reset_date = models.DateTimeField(null=True, blank=True)
+    

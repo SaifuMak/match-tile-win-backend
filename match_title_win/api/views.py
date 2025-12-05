@@ -1,15 +1,17 @@
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from .models import Participant
+from .models import ConsolationPrize, Participant
 from rest_framework import status
 from rest_framework.decorators import api_view
-from .utils import draw_prize
+from .utils import draw_prize,check_and_reset_prizes, handle_consolation_prize
 from django.db import transaction
 from .serializers import ParticipantSerializer
 from .pagination import GeneralListPagination
 from rest_framework.permissions import IsAuthenticated, IsAdminUser
 from authentication.views import JWTAuthentication
 from rest_framework.decorators import api_view, authentication_classes, permission_classes
+from django.db.models import F
+
 # Create your views here.
 
 
@@ -51,18 +53,26 @@ def get_my_rewards(request):
         participant = Participant.objects.get(id=id)
         participant.time_taken = time
         participant.has_played = True
+        check_and_reset_prizes()
        
         if has_won:
                 prize = draw_prize()
                 participant.has_won = True
 
-                participant.reward = prize.amount if prize else 0
+                if prize:
+                    participant.reward = prize.amount if prize else 0
+                else:
+                    handle_consolation_prize()
+
                 participant.save()
                 return Response(
-                        { "win_status": True, "reward": participant.reward},
-                        status=status.HTTP_200_OK
-                    )
-    
+                            { "win_status": True, "reward": prize.amount if prize else 0},
+                            status=status.HTTP_200_OK
+                        )
+
+        # If not won, give consolation prize if available   
+        handle_consolation_prize()
+       
         participant.save()  
         return Response(
             { "win_status": False,"reward": None},
@@ -133,3 +143,22 @@ def list_all_winners(request):
     winners = Participant.objects.filter(has_won=True).order_by("-created_at")
     serializer = ParticipantSerializer(winners, many=True)
     return Response(serializer.data, status=status.HTTP_200_OK)
+
+
+@api_view(["PATCH"])
+@authentication_classes([JWTAuthentication])
+@permission_classes([IsAdminUser])
+def update_prize_claim_status(request, participant_id):
+    try:
+        participant = Participant.objects.get(id=participant_id)
+        participant.is_prize_claimed = not participant.is_prize_claimed
+        participant.save()
+        return Response(
+            {"message": "Prize claim status updated successfully."},
+            status=status.HTTP_200_OK
+        )
+    except Participant.DoesNotExist:
+        return Response(
+            {"error": "Participant not found."},
+            status=status.HTTP_404_NOT_FOUND
+        )
