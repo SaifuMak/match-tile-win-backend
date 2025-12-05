@@ -39,6 +39,7 @@ class Prize(models.Model):
     name = models.CharField(max_length=100)
     amount = models.IntegerField(null=True, blank=True)  # $10 / $20 / $50 / $100 etc.
     quantity = models.PositiveIntegerField(default=0)
+    quantity_limit = models.PositiveIntegerField(default=0)
 
     def __str__(self):
         return f"{self.amount} Gift Card ({self.quantity} left)"

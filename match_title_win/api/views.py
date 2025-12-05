@@ -1,11 +1,11 @@
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from .models import ConsolationPrize, Participant
+from .models import ConsolationPrize, Participant, Prize
 from rest_framework import status
 from rest_framework.decorators import api_view
 from .utils import draw_prize,check_and_reset_prizes, handle_consolation_prize
 from django.db import transaction
-from .serializers import ParticipantSerializer
+from .serializers import ParticipantSerializer, PrizeDetailSerializer, PrizeDetailSerializer
 from .pagination import GeneralListPagination
 from rest_framework.permissions import IsAuthenticated, IsAdminUser
 from authentication.views import JWTAuthentication
@@ -162,3 +162,18 @@ def update_prize_claim_status(request, participant_id):
             {"error": "Participant not found."},
             status=status.HTTP_404_NOT_FOUND
         )
+    
+@api_view(["GET"])
+@authentication_classes([JWTAuthentication])
+@permission_classes([IsAdminUser])
+def rewards_details(request):
+    vouchers = Prize.objects.all()
+    consolation_prize = ConsolationPrize.objects.first()
+    vouchers_serializer = PrizeDetailSerializer(vouchers, many=True)
+    consolation_serializer = PrizeDetailSerializer(consolation_prize)
+    data = {
+        "vouchers": vouchers_serializer.data,
+        "consolation": consolation_serializer.data,
+    }
+
+    return Response(data, status=status.HTTP_200_OK)

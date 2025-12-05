@@ -1,6 +1,6 @@
 # serializers.py
 from rest_framework import serializers
-from .models import Participant
+from .models import ConsolationPrize, Participant, Prize
 from django.utils.timezone import localtime
 import pytz
 
@@ -18,3 +18,14 @@ class ParticipantSerializer(serializers.ModelSerializer):
             tz = pytz.timezone("Australia/Sydney")
             return localtime(obj.played_at, tz).strftime("%d %b %Y, %I:%M %p")
         return None
+    
+class PrizeDetailSerializer(serializers.ModelSerializer):
+     class Meta:
+         model = Prize
+         fields = "__all__"
+
+         
+class ConsolationPrizeSerializer(serializers.ModelSerializer):
+     class Meta:
+         model = ConsolationPrize
+         fields = "__all__"
