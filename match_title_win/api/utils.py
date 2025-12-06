@@ -2,7 +2,7 @@ from datetime import timedelta
 from django.db.models import F
 from django.db import transaction
 from pytz import timezone
-from .models import ConsolationPrize, Prize, PrizeConfig
+from .models import ConsolationPrize, Prize, PrizeConfig, PrizeResetLog
 from django.utils.timezone import now
 
 
@@ -30,6 +30,19 @@ def handle_consolation_prize():
 
 def reset_prizes():
         prizes = Prize.objects.all()
+        consolation_prize = ConsolationPrize.objects.first()
+
+        snapshot = {
+        "timestamp": str(now()),
+        "prizes": list(prizes.values("name","amount", "quantity", "quantity_limit")),
+        "consolation": {
+            "quantity": consolation_prize.quantity if consolation_prize else 0
+            }
+        }
+        print("Prize Reset Snapshot:", snapshot)
+        
+        PrizeResetLog.objects.create(snapshot=snapshot)
+
         for prize in prizes:
             if prize.amount == 10:
                 prize.quantity = 140
@@ -60,3 +73,5 @@ def check_and_reset_prizes():
 
     if now() >= config.reset_date:
         reset_prizes()
+
+

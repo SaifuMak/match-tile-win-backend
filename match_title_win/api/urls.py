@@ -11,6 +11,7 @@ urlpatterns = [
     urls.path('update-prize-claim/<int:participant_id>/', views.update_prize_claim_status, name='update_prize_claim_status'),
     urls.path('rewards-details/', views.rewards_details, name='rewards_details'),
     urls.path('delete-participant/<int:participant_id>/', views.delete_participant, name='delete_participant'),
+    urls.path('prize-reset-snapshot/', views.prize_reset_snapshot, name='prize_reset_snapshot'),
     
 
 ]

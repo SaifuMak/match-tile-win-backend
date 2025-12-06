@@ -1,6 +1,6 @@
 # serializers.py
 from rest_framework import serializers
-from .models import ConsolationPrize, Participant, Prize
+from .models import ConsolationPrize, Participant, Prize, PrizeResetLog
 from django.utils.timezone import localtime
 import pytz
 
@@ -29,3 +29,9 @@ class ConsolationPrizeSerializer(serializers.ModelSerializer):
      class Meta:
          model = ConsolationPrize
          fields = "__all__"
+
+class PrizeResetLogSerializer(serializers.ModelSerializer):
+    recorded_at = serializers.DateTimeField(format="%d %b %Y %I:%M %p", read_only=True)
+    class Meta:
+        model = PrizeResetLog
+        fields = "__all__"

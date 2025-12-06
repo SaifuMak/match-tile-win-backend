@@ -1,11 +1,11 @@
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from .models import ConsolationPrize, Participant, Prize
+from .models import ConsolationPrize, Participant, Prize, PrizeResetLog
 from rest_framework import status
 from rest_framework.decorators import api_view
 from .utils import draw_prize,check_and_reset_prizes, handle_consolation_prize
 from django.db import transaction
-from .serializers import ParticipantSerializer, PrizeDetailSerializer, PrizeDetailSerializer
+from .serializers import ParticipantSerializer, PrizeDetailSerializer, PrizeDetailSerializer, PrizeResetLogSerializer
 from .pagination import GeneralListPagination
 from rest_framework.permissions import IsAuthenticated, IsAdminUser
 from authentication.views import JWTAuthentication
@@ -209,3 +209,13 @@ def delete_participant(request, participant_id):
             {"error": "Participant not found."},
             status=status.HTTP_404_NOT_FOUND
         )
+    
+
+
+@api_view(["GET"])
+@authentication_classes([JWTAuthentication])
+@permission_classes([IsAdminUser])
+def prize_reset_snapshot(request):
+    logs = PrizeResetLog.objects.all()
+    serializer = PrizeResetLogSerializer(logs, many=True)
+    return Response(serializer.data, status=status.HTTP_200_OK)

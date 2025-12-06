@@ -55,3 +55,10 @@ class ConsolationPrize(models.Model):
 class PrizeConfig(models.Model):
     reset_date = models.DateTimeField(null=True, blank=True)
     
+
+class PrizeResetLog(models.Model):
+    recorded_at = models.DateTimeField(auto_now_add=True)
+    snapshot = models.JSONField()
+
+    def __str__(self):
+        return f"Reset Log - {self.recorded_at}"
