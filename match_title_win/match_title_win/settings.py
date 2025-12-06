@@ -48,7 +48,8 @@ CSRF_TRUSTED_ORIGINS = [
     "https://127.0.0.1",
     "http://localhost:3000",
       "https://*.railway.app",
-      "https://match-tile-win-game.vercel.app"
+      "https://match-tile-win-game.vercel.app",
+      'https://api.beunitedatchristmas.com.au'
 ]
 
 CORS_ALLOW_ALL_ORIGINS = True
