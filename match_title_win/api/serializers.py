@@ -35,3 +35,9 @@ class PrizeResetLogSerializer(serializers.ModelSerializer):
     class Meta:
         model = PrizeResetLog
         fields = "__all__"
+
+    def get_recorded_at(self, obj):
+        if obj.recorded_at:
+            tz = pytz.timezone("Australia/Sydney")
+            return localtime(obj.recorded_at, tz).strftime("%d %b %Y, %I:%M %p")
+        return None
