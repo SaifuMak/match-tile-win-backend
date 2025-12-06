@@ -24,53 +24,50 @@ from rest_framework.decorators import api_view, authentication_classes, permissi
 
 class JWTAuthentication(authentication.BaseAuthentication):
     def authenticate(self, request):
-        # refresh_token = request.COOKIES.get('refresh_token')
-        # access_token = request.COOKIES.get('access_token')
-        refresh_token = request.COOKIES.get('session_persist')
-        access_token = request.COOKIES.get('session_id')
-        
-        if not access_token:
-            if not refresh_token:
+
+        session_persist = request.COOKIES.get('session_persist')
+        session_id = request.COOKIES.get('session_id')
+       
+        if not session_id:
+            if not session_persist:
                 raise AuthenticationFailed('No access token and refresh token not provided')
-            return self.refresh_access_token(refresh_token)
+            return self.refresh_access_token(session_persist)
 
         try:
-            
-            payload = jwt.decode(access_token, settings.SECRET_KEY, algorithms=['HS256'])
-            # print(payload,'^^^^^^^^^^^^^^^')
+            payload = jwt.decode(session_id, settings.SECRET_KEY, algorithms=['HS256'])
 
             user_id = payload['user_id']
             user = User.objects.get(id=user_id)
+          
             return (user, None)
 
-           
         except jwt.ExpiredSignatureError:
-            if not refresh_token:
+            if not session_persist:
                 raise AuthenticationFailed('Refresh token not provided')
-            return self.refresh_access_token(refresh_token)
+            return self.refresh_access_token(session_persist)
 
         except jwt.InvalidTokenError:
                 raise AuthenticationFailed('Invalid refresh token')
 
-        except User.DoesNotExist:
+        except user.DoesNotExist:
                 raise AuthenticationFailed('User not found')
 
         
-    def refresh_access_token(self, refresh_token):
+    def refresh_access_token(self, session_persist):
         try:
-            payload_refresh = jwt.decode(refresh_token, settings.SECRET_KEY, algorithms=['HS256'])
+            payload_refresh = jwt.decode(session_persist, settings.SECRET_KEY, algorithms=['HS256'])
             user_id = payload_refresh['user_id']
             user = User.objects.get(id=user_id)
-
+        
             # Generate a new access token
             refresh = RefreshToken.for_user(user)
             new_access_token = str(refresh.access_token)
             new_refresh_token = str(refresh)
 
-            response = Response({'access_token': new_access_token}, status=status.HTTP_200_OK)
+            response = Response({'session_id': new_access_token}, status=status.HTTP_200_OK)
          
             response.set_cookie(
-                key='access_token',
+                key='session_id',
                 value=new_access_token,
                 httponly=True,
                 secure=True,
@@ -78,9 +75,8 @@ class JWTAuthentication(authentication.BaseAuthentication):
                 max_age=5*60  
             )
 
-
             response.set_cookie(
-                key='refresh_token',
+                key='session_persist',
                 value=new_refresh_token,
                 httponly=True,
                 secure=True,
@@ -88,7 +84,6 @@ class JWTAuthentication(authentication.BaseAuthentication):
                 max_age=2*24*60 
             )
 
-            # print("New tokens set in cookies")
             return (user, None)
             # return(response)
 
@@ -98,9 +93,10 @@ class JWTAuthentication(authentication.BaseAuthentication):
         except jwt.InvalidTokenError:
             raise AuthenticationFailed('Invalid refresh token')
 
-        except User.DoesNotExist:
+        except user.DoesNotExist:
             raise AuthenticationFailed('User not found') 
-        
+
+
 
 @api_view(['POST'])
 def login(request):

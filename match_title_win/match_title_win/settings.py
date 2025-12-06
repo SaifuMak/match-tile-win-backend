@@ -37,7 +37,7 @@ DEBUG = True
 ALLOWED_HOSTS = [ '127.0.0.1',
     'localhost',
     'localhost:5173/',
-    'match-tile-win-game.vercel.app',
+    # 'match-tile-win-game.vercel.app',
     'web-production-34e07.up.railway.app'
 ]
 
@@ -73,21 +73,21 @@ INSTALLED_APPS = [
 ]
 
 
-CORS_ALLOW_METHODS = [
-    'GET',
-    'POST',
-    'PUT',
-    'DELETE',
-    'OPTIONS',
-    'PATCH',
+# CORS_ALLOW_METHODS = [
+#     'GET',
+#     'POST',
+#     'PUT',
+#     'DELETE',
+#     'OPTIONS',
+#     'PATCH',
    
-]
+# ]
 
-CORS_ALLOW_HEADERS = [
-    'content-type',
-    'authorization',
-    'Access-Control-Allow-Credentials',  
-]
+# CORS_ALLOW_HEADERS = [
+#     'content-type',
+#     'authorization',
+#     'Access-Control-Allow-Credentials',  
+# ]
 
 MIDDLEWARE = [
      "corsheaders.middleware.CorsMiddleware",
