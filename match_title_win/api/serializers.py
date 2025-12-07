@@ -1,4 +1,5 @@
 # serializers.py
+from datetime import timedelta
 from rest_framework import serializers
 from .models import ConsolationPrize, Participant, Prize, PrizeResetLog
 from django.utils.timezone import localtime
@@ -31,13 +32,23 @@ class ConsolationPrizeSerializer(serializers.ModelSerializer):
          fields = "__all__"
 
 class PrizeResetLogSerializer(serializers.ModelSerializer):
-    recorded_at = serializers.DateTimeField(format="%d %b %Y %I:%M %p", read_only=True)
+    recorded_at = serializers.DateTimeField(format="%d %b", read_only=True)
+    start_date = serializers.SerializerMethodField()
+
     class Meta:
         model = PrizeResetLog
         fields = "__all__"
+        extra_fields = ['start_date']
 
     def get_recorded_at(self, obj):
         if obj.recorded_at:
             tz = pytz.timezone("Australia/Sydney")
-            return localtime(obj.recorded_at, tz).strftime("%d %b %Y, %I:%M %p")
+            return localtime(obj.recorded_at, tz).strftime("%d %b")
+        return None
+    
+    def get_start_date(self, obj):
+        if obj.recorded_at:
+            tz = pytz.timezone("Australia/Sydney")
+            dt = localtime(obj.recorded_at, tz) - timedelta(days=7)
+            return dt.strftime("%d %b")
         return None

@@ -12,6 +12,7 @@ urlpatterns = [
     urls.path('rewards-details/', views.rewards_details, name='rewards_details'),
     urls.path('delete-participant/<int:participant_id>/', views.delete_participant, name='delete_participant'),
     urls.path('prize-reset-snapshot/', views.prize_reset_snapshot, name='prize_reset_snapshot'),
+    urls.path('weekly-rewards-summary/', views.weekly_prize_report, name='weekly_prize_report'),
     
 
 ]

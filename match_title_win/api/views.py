@@ -1,3 +1,4 @@
+import pytz
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from .models import ConsolationPrize, Participant, Prize, PrizeResetLog
@@ -11,6 +12,8 @@ from rest_framework.permissions import IsAuthenticated, IsAdminUser
 from authentication.views import JWTAuthentication
 from rest_framework.decorators import api_view, authentication_classes, permission_classes
 from django.db.models import F
+from django.utils.timezone import make_aware
+from datetime import datetime
 
 # Create your views here.
 
@@ -168,7 +171,7 @@ def update_prize_claim_status(request, participant_id):
 @authentication_classes([JWTAuthentication])
 @permission_classes([IsAdminUser])
 def rewards_details(request):
-    vouchers = Prize.objects.all()
+    vouchers = Prize.objects.order_by("amount")
     consolation_prize = ConsolationPrize.objects.first()
     vouchers_serializer = PrizeDetailSerializer(vouchers, many=True)
     consolation_serializer = PrizeDetailSerializer(consolation_prize)
@@ -219,3 +222,56 @@ def prize_reset_snapshot(request):
     logs = PrizeResetLog.objects.all()
     serializer = PrizeResetLogSerializer(logs, many=True)
     return Response(serializer.data, status=status.HTTP_200_OK)
+
+    
+
+@api_view(["GET"])
+@authentication_classes([JWTAuthentication])
+@permission_classes([IsAdminUser])
+def weekly_prize_report(request):
+
+    australia_tz = pytz.timezone("Australia/Sydney")
+
+    week1_start = australia_tz.localize(datetime(2025, 12, 8))
+    week1_end   = australia_tz.localize(datetime(2025, 12, 14))
+
+    week2_start = australia_tz.localize(datetime(2025, 12, 15))
+    week2_end = australia_tz.localize(datetime(2025, 12, 21))   
+
+    def calculate_week_data(title, start, end):
+        reward_counts = {
+            "10": 0,
+            "20": 0,
+            "50": 0,
+            "100": 0,
+        }
+        consolation = 0
+
+        participants = Participant.objects.filter(
+            has_played=True,
+            played_at__gte=start,
+            played_at__lt=end
+        )
+
+        for p in participants:
+            if p.reward:
+                key = str(p.reward)
+                if key in reward_counts:
+                    reward_counts[key] += 1
+            else:
+                consolation += 1
+
+        return {
+            "title": title,
+            "rewards": reward_counts,
+            "consolation": consolation,
+        }
+
+    
+    week1 = calculate_week_data('First week (Dec 08-14)', week1_start, week1_end)
+    week2 = calculate_week_data('Second week (Dec 15-21)', week2_start, week2_end)
+
+    return Response({
+        "week_1": week1,
+        "week_2": week2
+    })
